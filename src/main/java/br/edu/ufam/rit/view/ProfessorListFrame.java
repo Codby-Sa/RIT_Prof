@@ -125,6 +125,9 @@ public class ProfessorListFrame extends JFrame {
  * <p>Por enquanto, esta ação apenas confirma o professor selecionado.
  * Na próxima etapa, abrirá a tela de RIT.</p>
  */
+/**
+ * Abre o gerenciamento de RIT do professor selecionado.
+ */
 private void gerenciarRIT() {
     int selectedRow = professorTable.getSelectedRow();
 
@@ -137,12 +140,33 @@ private void gerenciarRIT() {
     }
 
     int professorId = (int) tableModel.getValueAt(selectedRow, 0);
-    String professorNome = (String) tableModel.getValueAt(selectedRow, 1);
 
-    JOptionPane.showMessageDialog(
-        this,
-        "Abrir gerenciamento de RIT do professor: " + professorNome + "\nID interno: " + professorId
-    );
+    try {
+        Professor professor = professorDAO.buscarPorId(professorId);
+
+        if (professor == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Professor não encontrado.",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        RitFrame ritFrame = new RitFrame(professor);
+        ritFrame.setVisible(true);
+
+    } catch (SQLException exception) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Erro ao abrir gerenciamento de RIT.",
+            "Erro",
+            JOptionPane.ERROR_MESSAGE
+        );
+
+        exception.printStackTrace();
+    }
 }
 
     /**
