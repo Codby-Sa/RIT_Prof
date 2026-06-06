@@ -20,8 +20,10 @@ import java.util.List;
 /**
  * Tela inicial do sistema, responsável por listar os professores cadastrados.
  *
- * <p>A partir desta tela, o usuário poderá adicionar, editar, excluir
- * e futuramente abrir o gerenciamento de RIT de um professor.</p>
+ * <p>
+ * A partir desta tela, o usuário poderá adicionar, editar, excluir
+ * e futuramente abrir o gerenciamento de RIT de um professor.
+ * </p>
  */
 public class ProfessorListFrame extends JFrame {
 
@@ -62,6 +64,7 @@ public class ProfessorListFrame extends JFrame {
         add(titleLabel, BorderLayout.NORTH);
 
         criarTabela();
+        
         criarPainelBotoes();
     }
 
@@ -69,13 +72,13 @@ public class ProfessorListFrame extends JFrame {
      * Cria a tabela responsável por exibir os professores.
      */
     private void criarTabela() {
-        String[] columns = {"ID", "Nome", "Email", "Departamento"};
+        String[] columns = { "ID", "Nome", "Email", "Departamento" };
 
         tableModel = new DefaultTableModel(columns, 0) {
             /**
              * Impede que as células da tabela sejam editadas diretamente.
              *
-             * @param row linha da célula
+             * @param row    linha da célula
              * @param column coluna da célula
              * @return false, indicando que a célula não é editável
              */
@@ -86,6 +89,7 @@ public class ProfessorListFrame extends JFrame {
         };
 
         professorTable = new JTable(tableModel);
+        
         professorTable.setRowHeight(28);
 
         JScrollPane scrollPane = new JScrollPane(professorTable);
@@ -127,21 +131,20 @@ public class ProfessorListFrame extends JFrame {
 
             for (Professor professor : professores) {
                 Object[] row = {
-                    professor.getId(),
-                    professor.getNome(),
-                    professor.getEmail(),
-                    professor.getDepartamento()
+                        professor.getId(),
+                        professor.getNome(),
+                        professor.getEmail(),
+                        professor.getDepartamento()
                 };
 
                 tableModel.addRow(row);
             }
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(
-                this,
-                "Erro ao carregar professores.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Erro ao carregar professores.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
 
             exception.printStackTrace();
         }
@@ -150,39 +153,87 @@ public class ProfessorListFrame extends JFrame {
     /**
      * Ação temporária para o botão de adicionar professor.
      *
-     * <p>Na próxima etapa, essa ação abrirá um formulário de cadastro.</p>
+     * <p>
+     * Na próxima etapa, essa ação abrirá um formulário de cadastro.
+     * </p>
      */
-    private void adicionarProfessor() {
+    /**
+ * Abre o formulário para cadastrar um novo professor.
+ */
+private void adicionarProfessor() {
+    ProfessorFormDialog dialog = new ProfessorFormDialog(this, null);
+    dialog.setVisible(true);
+
+    if (dialog.isSaved()) {
+        carregarProfessores();
+
         JOptionPane.showMessageDialog(
             this,
-            "Na próxima etapa, este botão abrirá o cadastro de professor."
+            "Professor cadastrado com sucesso."
         );
     }
+}
 
     /**
      * Ação temporária para o botão de editar professor.
      *
-     * <p>Na próxima etapa, essa ação abrirá um formulário preenchido com os dados
-     * do professor selecionado.</p>
+     * <p>
+     * Na próxima etapa, essa ação abrirá um formulário preenchido com os dados
+     * do professor selecionado.
+     * </p>
      */
-    private void editarProfessor() {
-        int selectedRow = professorTable.getSelectedRow();
+    /**
+ * Abre o formulário para editar o professor selecionado.
+ */
+private void editarProfessor() {
+    int selectedRow = professorTable.getSelectedRow();
 
-        if (selectedRow == -1) {
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Selecione um professor para editar."
+        );
+        return;
+    }
+
+    int professorId = (int) tableModel.getValueAt(selectedRow, 0);
+
+    try {
+        Professor professor = professorDAO.buscarPorId(professorId);
+
+        if (professor == null) {
             JOptionPane.showMessageDialog(
                 this,
-                "Selecione um professor para editar."
+                "Professor não encontrado.",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE
             );
             return;
         }
 
-        int professorId = (int) tableModel.getValueAt(selectedRow, 0);
+        ProfessorFormDialog dialog = new ProfessorFormDialog(this, professor);
+        dialog.setVisible(true);
 
+        if (dialog.isSaved()) {
+            carregarProfessores();
+
+            JOptionPane.showMessageDialog(
+                this,
+                "Professor atualizado com sucesso."
+            );
+        }
+
+    } catch (SQLException exception) {
         JOptionPane.showMessageDialog(
             this,
-            "Professor selecionado para edição. ID: " + professorId
+            "Erro ao buscar professor.",
+            "Erro",
+            JOptionPane.ERROR_MESSAGE
         );
+
+        exception.printStackTrace();
     }
+}
 
     /**
      * Remove o professor selecionado da tabela e do banco de dados.
@@ -192,9 +243,8 @@ public class ProfessorListFrame extends JFrame {
 
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(
-                this,
-                "Selecione um professor para excluir."
-            );
+                    this,
+                    "Selecione um professor para excluir.");
             return;
         }
 
@@ -202,11 +252,10 @@ public class ProfessorListFrame extends JFrame {
         String professorNome = (String) tableModel.getValueAt(selectedRow, 1);
 
         int option = JOptionPane.showConfirmDialog(
-            this,
-            "Deseja realmente excluir o professor " + professorNome + "?",
-            "Confirmar exclusão",
-            JOptionPane.YES_NO_OPTION
-        );
+                this,
+                "Deseja realmente excluir o professor " + professorNome + "?",
+                "Confirmar exclusão",
+                JOptionPane.YES_NO_OPTION);
 
         if (option == JOptionPane.YES_OPTION) {
             try {
@@ -214,16 +263,14 @@ public class ProfessorListFrame extends JFrame {
                 carregarProfessores();
 
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Professor excluído com sucesso."
-                );
+                        this,
+                        "Professor excluído com sucesso.");
             } catch (SQLException exception) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Erro ao excluir professor.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE
-                );
+                        this,
+                        "Erro ao excluir professor.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
 
                 exception.printStackTrace();
             }
