@@ -1,6 +1,11 @@
 package br.edu.ufam.rit.view;
 
 import br.edu.ufam.rit.model.Professor;
+import br.edu.ufam.rit.dao.RITDAO;
+import br.edu.ufam.rit.model.RIT;
+
+import javax.swing.JOptionPane;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,6 +28,8 @@ import java.awt.GridLayout;
 public class RitFrame extends JFrame {
 
     private Professor professor;
+    private RIT rit;
+    private RITDAO ritDAO;
 
     private JTextField semestreField;
     private JTextField anoField;
@@ -36,6 +43,7 @@ public class RitFrame extends JFrame {
         super("Gerenciamento de RIT");
 
         this.professor = professor;
+        this.ritDAO = new RITDAO();
 
         configurarJanela();
         criarComponentes();
@@ -140,6 +148,88 @@ public class RitFrame extends JFrame {
     }
 
     /**
+ * Busca um RIT existente para o professor, semestre e ano informados.
+ * Caso não exista, cria um novo RIT no banco.
+ *
+ * @return true se o RIT foi obtido ou criado com sucesso, false caso contrário
+ */
+private boolean obterOuCriarRIT() {
+    String semestre = semestreField.getText().trim();
+    String anoTexto = anoField.getText().trim();
+
+    if (semestre.isEmpty()) {
+        JOptionPane.showMessageDialog(
+            this,
+            "O semestre é obrigatório.",
+            "Validação",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return false;
+    }
+
+    if (anoTexto.isEmpty()) {
+        JOptionPane.showMessageDialog(
+            this,
+            "O ano é obrigatório.",
+            "Validação",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return false;
+    }
+
+    int ano;
+
+    try {
+        ano = Integer.parseInt(anoTexto);
+    } catch (NumberFormatException exception) {
+        JOptionPane.showMessageDialog(
+            this,
+            "O ano deve ser um número inteiro.",
+            "Validação",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return false;
+    }
+
+    try {
+        RIT ritEncontrado = ritDAO.buscarPorProfessorSemestreAno(
+            professor.getId(),
+            semestre,
+            ano
+        );
+
+        if (ritEncontrado != null) {
+            this.rit = ritEncontrado;
+            return true;
+        }
+
+        RIT novoRIT = new RIT(
+            professor.getId(),
+            semestre,
+            ano
+        );
+
+        int novoId = ritDAO.inserir(novoRIT);
+        novoRIT.setId(novoId);
+
+        this.rit = novoRIT;
+
+        return true;
+
+    } catch (SQLException exception) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Erro ao obter ou criar RIT.",
+            "Erro",
+            JOptionPane.ERROR_MESSAGE
+        );
+
+        exception.printStackTrace();
+        return false;
+    }
+}
+
+    /**
      * Cria o painel inferior com botões de ação da tela.
      */
     private void criarPainelInferior() {
@@ -160,15 +250,24 @@ public class RitFrame extends JFrame {
     /**
      * Ação temporária para geração do relatório.
      */
-    private void gerarRelatorio() {
-        String semestre = semestreField.getText().trim();
-        String ano = anoField.getText().trim();
+    /**
+ * Gera uma prévia temporária do relatório do professor.
+ *
+ * <p>Antes de gerar o relatório, garante que exista um RIT salvo no banco.</p>
+ */
+private void gerarRelatorio() {
+    boolean ritDisponivel = obterOuCriarRIT();
 
-        javax.swing.JOptionPane.showMessageDialog(
-            this,
-            "Relatório do professor " + professor.getNome()
-                + "\nSemestre: " + semestre
-                + "\nAno: " + ano
-        );
+    if (!ritDisponivel) {
+        return;
     }
+
+    JOptionPane.showMessageDialog(
+        this,
+        "RIT pronto para o professor " + professor.getNome()
+            + "\nID do RIT: " + rit.getId()
+            + "\nSemestre: " + rit.getSemestre()
+            + "\nAno: " + rit.getAno()
+    );
+}
 }
