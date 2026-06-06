@@ -1,5 +1,7 @@
 package br.edu.ufam.rit;
 
+import br.edu.ufam.rit.model.Professor;
+
 /**
  * Classe principal do sistema de gerenciamento de RIT.
  *
@@ -13,6 +15,9 @@ public class Main {
      * @param args argumentos recebidos pela linha de comando
      */
     public static void main(String[] args) {
+        Professor professor = new Professor("Ana Silva", "ana@ufam.edu.br", "Computação");
+
         System.out.println("Sistema de Gerenciamento de RIT iniciado.");
+        System.out.println("Professor de teste: " + professor.getNome());
     }
 }
