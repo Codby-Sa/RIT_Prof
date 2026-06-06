@@ -72,53 +72,78 @@ public class ProfessorListFrame extends JFrame {
      * Cria a tabela responsável por exibir os professores.
      */
     private void criarTabela() {
-        String[] columns = { "ID", "Nome", "Email", "Departamento" };
+    String[] columns = {"ID", "Nome", "Email", "Departamento"};
 
-        tableModel = new DefaultTableModel(columns, 0) {
-            /**
-             * Impede que as células da tabela sejam editadas diretamente.
-             *
-             * @param row    linha da célula
-             * @param column coluna da célula
-             * @return false, indicando que a célula não é editável
-             */
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+    tableModel = new DefaultTableModel(columns, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
 
-        professorTable = new JTable(tableModel);
-        
-        professorTable.setRowHeight(28);
+    professorTable = new JTable(tableModel);
+    professorTable.setRowHeight(28);
+    professorTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+    professorTable.setRowSelectionAllowed(true);
+    professorTable.setColumnSelectionAllowed(false);
 
-        JScrollPane scrollPane = new JScrollPane(professorTable);
-        add(scrollPane, BorderLayout.CENTER);
-    }
+    professorTable.getColumnModel().getColumn(0).setMinWidth(0);
+    professorTable.getColumnModel().getColumn(0).setMaxWidth(0);
+    professorTable.getColumnModel().getColumn(0).setWidth(0);
+
+    JScrollPane scrollPane = new JScrollPane(professorTable);
+    add(scrollPane, BorderLayout.CENTER);
+}
 
     /**
      * Cria o painel inferior com os botões principais.
      */
     private void criarPainelBotoes() {
-        JPanel buttonPanel = new JPanel();
+    JPanel buttonPanel = new JPanel();
 
-        JButton addButton = new JButton("Adicionar professor");
-        JButton editButton = new JButton("Editar");
-        JButton deleteButton = new JButton("Excluir");
-        JButton refreshButton = new JButton("Atualizar");
+    JButton manageButton = new JButton("Gerenciar RIT");
+    JButton addButton = new JButton("Adicionar professor");
+    JButton editButton = new JButton("Editar");
+    JButton deleteButton = new JButton("Excluir");
 
-        addButton.addActionListener(event -> adicionarProfessor());
-        editButton.addActionListener(event -> editarProfessor());
-        deleteButton.addActionListener(event -> excluirProfessor());
-        refreshButton.addActionListener(event -> carregarProfessores());
+    manageButton.addActionListener(event -> gerenciarRIT());
+    addButton.addActionListener(event -> adicionarProfessor());
+    editButton.addActionListener(event -> editarProfessor());
+    deleteButton.addActionListener(event -> excluirProfessor());
 
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(refreshButton);
+    buttonPanel.add(manageButton);
+    buttonPanel.add(addButton);
+    buttonPanel.add(editButton);
+    buttonPanel.add(deleteButton);
 
-        add(buttonPanel, BorderLayout.SOUTH);
+    add(buttonPanel, BorderLayout.SOUTH);
+}
+
+    /**
+ * Abre o gerenciamento de RIT do professor selecionado.
+ *
+ * <p>Por enquanto, esta ação apenas confirma o professor selecionado.
+ * Na próxima etapa, abrirá a tela de RIT.</p>
+ */
+private void gerenciarRIT() {
+    int selectedRow = professorTable.getSelectedRow();
+
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Selecione um professor para gerenciar o RIT."
+        );
+        return;
     }
+
+    int professorId = (int) tableModel.getValueAt(selectedRow, 0);
+    String professorNome = (String) tableModel.getValueAt(selectedRow, 1);
+
+    JOptionPane.showMessageDialog(
+        this,
+        "Abrir gerenciamento de RIT do professor: " + professorNome + "\nID interno: " + professorId
+    );
+}
 
     /**
      * Carrega os professores salvos no banco e atualiza a tabela.
