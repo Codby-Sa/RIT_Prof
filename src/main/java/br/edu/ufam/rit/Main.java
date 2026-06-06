@@ -1,16 +1,16 @@
 package br.edu.ufam.rit;
 
 import br.edu.ufam.rit.dao.DatabaseInitializer;
-import br.edu.ufam.rit.dao.ProfessorDAO;
-import br.edu.ufam.rit.model.Professor;
+import br.edu.ufam.rit.view.ProfessorListFrame;
 
+import javax.swing.SwingUtilities;
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Classe principal do sistema de gerenciamento de RIT.
  *
- * <p>Esta classe será responsável por iniciar a aplicação.</p>
+ * <p>Esta classe inicializa o banco de dados e abre a tela principal
+ * da aplicação.</p>
  */
 public class Main {
 
@@ -23,31 +23,13 @@ public class Main {
         try {
             DatabaseInitializer.initialize();
 
-            ProfessorDAO professorDAO = new ProfessorDAO();
-
-            Professor professor = new Professor(
-                "Ana Silva",
-                "ana@ufam.edu.br",
-                "Computação"
-            );
-
-            professorDAO.inserir(professor);
-
-            List<Professor> professores = professorDAO.listar();
-
-            System.out.println("Professores cadastrados:");
-
-            for (Professor item : professores) {
-                System.out.println(
-                    item.getId() + " - " +
-                    item.getNome() + " - " +
-                    item.getEmail() + " - " +
-                    item.getDepartamento()
-                );
-            }
+            SwingUtilities.invokeLater(() -> {
+                ProfessorListFrame frame = new ProfessorListFrame();
+                frame.setVisible(true);
+            });
 
         } catch (SQLException exception) {
-            System.err.println("Erro ao executar operação no banco de dados.");
+            System.err.println("Erro ao inicializar o banco de dados.");
             exception.printStackTrace();
         }
     }
