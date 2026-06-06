@@ -1,9 +1,11 @@
 package br.edu.ufam.rit;
 
 import br.edu.ufam.rit.dao.DatabaseInitializer;
+import br.edu.ufam.rit.dao.ProfessorDAO;
 import br.edu.ufam.rit.model.Professor;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Classe principal do sistema de gerenciamento de RIT.
@@ -21,13 +23,31 @@ public class Main {
         try {
             DatabaseInitializer.initialize();
 
-            Professor professor = new Professor("Ana Silva", "ana@ufam.edu.br", "Computação");
+            ProfessorDAO professorDAO = new ProfessorDAO();
 
-            System.out.println("Sistema de Gerenciamento de RIT iniciado.");
-            System.out.println("Banco de dados inicializado com sucesso.");
-            System.out.println("Professor de teste: " + professor.getNome());
+            Professor professor = new Professor(
+                "Ana Silva",
+                "ana@ufam.edu.br",
+                "Computação"
+            );
+
+            professorDAO.inserir(professor);
+
+            List<Professor> professores = professorDAO.listar();
+
+            System.out.println("Professores cadastrados:");
+
+            for (Professor item : professores) {
+                System.out.println(
+                    item.getId() + " - " +
+                    item.getNome() + " - " +
+                    item.getEmail() + " - " +
+                    item.getDepartamento()
+                );
+            }
+
         } catch (SQLException exception) {
-            System.err.println("Erro ao inicializar o banco de dados.");
+            System.err.println("Erro ao executar operação no banco de dados.");
             exception.printStackTrace();
         }
     }
