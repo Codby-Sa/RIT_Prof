@@ -284,23 +284,46 @@ public class RitFrame extends JFrame {
      * Antes de gerar o relatório, garante que exista um RIT salvo no banco.
      * </p>
      */
+    /**
+     * Gera e abre a tela final do relatório do professor.
+     */
     private void gerarRelatorio() {
         boolean ritDisponivel = obterOuCriarRIT();
 
         if (!ritDisponivel) {
             return;
         }
-        carregarDisciplinas();
-        carregarOrientacoes();
-        carregarArtigos();
-        carregarCoordenacoes();
 
-        JOptionPane.showMessageDialog(
-                this,
-                "RIT pronto para o professor " + professor.getNome()
-                        + "\nID do RIT: " + rit.getId()
-                        + "\nSemestre: " + rit.getSemestre()
-                        + "\nAno: " + rit.getAno());
+        try {
+            List<Disciplina> disciplinas = disciplinaDAO.listarPorRit(rit.getId());
+            List<Orientacao> orientacoes = orientacaoDAO.listarPorRit(rit.getId());
+            List<Artigo> artigos = artigoDAO.listarPorRit(rit.getId());
+            List<AtividadeCoordenacao> coordenacoes = atividadeCoordenacaoDAO.listarPorRit(rit.getId());
+
+            carregarDisciplinas();
+            carregarOrientacoes();
+            carregarArtigos();
+            carregarCoordenacoes();
+
+            RelatorioFrame relatorioFrame = new RelatorioFrame(
+                    professor,
+                    rit,
+                    disciplinas,
+                    orientacoes,
+                    artigos,
+                    coordenacoes);
+
+            relatorioFrame.setVisible(true);
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao gerar relatório.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
     }
 
     /**
