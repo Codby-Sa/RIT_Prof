@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
+import javax.swing.BorderFactory;
 
 /**
  * Janela de formulário usada para cadastrar ou editar artigos publicados.
@@ -62,6 +63,7 @@ public class ArtigoFormDialog extends JDialog {
         setSize(550, 300);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
@@ -69,11 +71,17 @@ public class ArtigoFormDialog extends JDialog {
      */
     private void criarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        formPanel.setBackground(AppTheme.CARD_BACKGROUND);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         tituloField = new JTextField();
         autoresField = new JTextField();
         eventoRevistaField = new JTextField();
         anoPublicacaoField = new JTextField();
+        UIUtils.styleTextField(tituloField);
+        UIUtils.styleTextField(autoresField);
+        UIUtils.styleTextField(eventoRevistaField);
+        UIUtils.styleTextField(anoPublicacaoField);
 
         formPanel.add(new JLabel("Título:"));
         formPanel.add(tituloField);
@@ -88,9 +96,11 @@ public class ArtigoFormDialog extends JDialog {
         formPanel.add(anoPublicacaoField);
 
         JPanel buttonPanel = new JPanel();
-
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
         JButton saveButton = new JButton("Salvar");
         JButton cancelButton = new JButton("Cancelar");
+        UIUtils.stylePrimaryButton(saveButton);
+        UIUtils.styleSecondaryButton(cancelButton);
 
         saveButton.addActionListener(event -> salvarArtigo());
         cancelButton.addActionListener(event -> dispose());

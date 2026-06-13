@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
+import javax.swing.BorderFactory;
 
 /**
  * Janela de formulário usada para cadastrar ou editar disciplinas.
@@ -62,6 +63,7 @@ public class DisciplinaFormDialog extends JDialog {
         setSize(450, 280);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
@@ -69,11 +71,17 @@ public class DisciplinaFormDialog extends JDialog {
      */
     private void criarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-
+        formPanel.setBackground(AppTheme.CARD_BACKGROUND);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         nomeField = new JTextField();
         codigoField = new JTextField();
         cargaHorariaField = new JTextField();
         cursoField = new JTextField();
+        UIUtils.styleTextField(nomeField);
+        UIUtils.styleTextField(codigoField);
+        UIUtils.styleTextField(cargaHorariaField);
+        UIUtils.styleTextField(cursoField);
+        
 
         formPanel.add(new JLabel("Nome:"));
         formPanel.add(nomeField);
@@ -88,9 +96,12 @@ public class DisciplinaFormDialog extends JDialog {
         formPanel.add(cursoField);
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
 
         JButton saveButton = new JButton("Salvar");
         JButton cancelButton = new JButton("Cancelar");
+        UIUtils.stylePrimaryButton(saveButton);
+        UIUtils.styleSecondaryButton(cancelButton);
 
         saveButton.addActionListener(event -> salvarDisciplina());
         cancelButton.addActionListener(event -> dispose());

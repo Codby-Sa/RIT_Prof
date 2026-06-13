@@ -13,12 +13,15 @@ import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
+import javax.swing.BorderFactory;
 
 /**
  * Janela de formulário usada para cadastrar ou editar professores.
  *
- * <p>Quando recebe um professor nulo, funciona como cadastro.
- * Quando recebe um professor existente, funciona como edição.</p>
+ * <p>
+ * Quando recebe um professor nulo, funciona como cadastro.
+ * Quando recebe um professor existente, funciona como edição.
+ * </p>
  */
 public class ProfessorFormDialog extends JDialog {
 
@@ -33,7 +36,7 @@ public class ProfessorFormDialog extends JDialog {
     /**
      * Cria o formulário de professor.
      *
-     * @param parent janela principal que abriu o formulário
+     * @param parent    janela principal que abriu o formulário
      * @param professor professor que será editado, ou null para cadastro
      */
     public ProfessorFormDialog(JFrame parent, Professor professor) {
@@ -61,6 +64,7 @@ public class ProfessorFormDialog extends JDialog {
         setSize(400, 250);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
@@ -68,6 +72,8 @@ public class ProfessorFormDialog extends JDialog {
      */
     private void criarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        formPanel.setBackground(AppTheme.CARD_BACKGROUND);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         JLabel nomeLabel = new JLabel("Nome:");
         JLabel emailLabel = new JLabel("Email:");
@@ -76,6 +82,10 @@ public class ProfessorFormDialog extends JDialog {
         nomeField = new JTextField();
         emailField = new JTextField();
         departamentoField = new JTextField();
+
+        UIUtils.styleTextField(nomeField);
+        UIUtils.styleTextField(emailField);
+        UIUtils.styleTextField(departamentoField);
 
         formPanel.add(nomeLabel);
         formPanel.add(nomeField);
@@ -87,9 +97,12 @@ public class ProfessorFormDialog extends JDialog {
         formPanel.add(departamentoField);
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
 
         JButton saveButton = new JButton("Salvar");
         JButton cancelButton = new JButton("Cancelar");
+        UIUtils.stylePrimaryButton(saveButton);
+        UIUtils.styleSecondaryButton(cancelButton);
 
         saveButton.addActionListener(event -> salvarProfessor());
         cancelButton.addActionListener(event -> dispose());
@@ -122,11 +135,10 @@ public class ProfessorFormDialog extends JDialog {
 
         if (nome.isEmpty()) {
             JOptionPane.showMessageDialog(
-                this,
-                "O nome do professor é obrigatório.",
-                "Validação",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    this,
+                    "O nome do professor é obrigatório.",
+                    "Validação",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -147,11 +159,10 @@ public class ProfessorFormDialog extends JDialog {
 
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(
-                this,
-                "Erro ao salvar professor.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Erro ao salvar professor.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
 
             exception.printStackTrace();
         }

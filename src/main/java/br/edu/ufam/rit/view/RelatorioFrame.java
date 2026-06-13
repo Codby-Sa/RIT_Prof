@@ -10,18 +10,22 @@ import br.edu.ufam.rit.model.RIT;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.Insets;
 import java.util.List;
 
 /**
  * Tela responsável por exibir o Relatório Individual de Trabalho completo.
  *
- * <p>Esta tela consolida os dados do professor, do RIT e das atividades
- * cadastradas em uma única visualização.</p>
+ * <p>
+ * Esta tela consolida os dados do professor, do RIT e das atividades
+ * cadastradas em uma única visualização.
+ * </p>
  */
 public class RelatorioFrame extends JFrame {
 
@@ -35,21 +39,20 @@ public class RelatorioFrame extends JFrame {
     /**
      * Cria a tela de relatório.
      *
-     * @param professor professor relacionado ao relatório
-     * @param rit RIT relacionado ao relatório
-     * @param disciplinas disciplinas ministradas
-     * @param orientacoes orientações realizadas
-     * @param artigos artigos publicados
+     * @param professor    professor relacionado ao relatório
+     * @param rit          RIT relacionado ao relatório
+     * @param disciplinas  disciplinas ministradas
+     * @param orientacoes  orientações realizadas
+     * @param artigos      artigos publicados
      * @param coordenacoes atividades de coordenação
      */
     public RelatorioFrame(
-        Professor professor,
-        RIT rit,
-        List<Disciplina> disciplinas,
-        List<Orientacao> orientacoes,
-        List<Artigo> artigos,
-        List<AtividadeCoordenacao> coordenacoes
-    ) {
+            Professor professor,
+            RIT rit,
+            List<Disciplina> disciplinas,
+            List<Orientacao> orientacoes,
+            List<Artigo> artigos,
+            List<AtividadeCoordenacao> coordenacoes) {
         super("Relatório Individual de Trabalho");
 
         this.professor = professor;
@@ -67,34 +70,101 @@ public class RelatorioFrame extends JFrame {
      * Configura as propriedades principais da janela.
      */
     private void configurarJanela() {
-        setSize(850, 650);
+        setSize(900, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(16, 16));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
      * Cria os componentes visuais da tela.
      */
     private void criarComponentes() {
+        JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
+        mainPanel.setBackground(AppTheme.BACKGROUND);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel headerPanel = criarCabecalho();
+        JPanel documentPanel = criarPainelDocumento();
+        JPanel bottomPanel = criarPainelInferior();
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(documentPanel, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        add(mainPanel, BorderLayout.CENTER);
+    }
+
+    /**
+     * Cria o cabeçalho visual da tela de relatório.
+     *
+     * @return painel de cabeçalho
+     */
+    private JPanel criarCabecalho() {
+        JPanel headerPanel = new JPanel(new BorderLayout(4, 4));
+        headerPanel.setBackground(AppTheme.BACKGROUND);
+
+        JLabel titleLabel = new JLabel("Relatório Individual de Trabalho");
+        titleLabel.setFont(AppTheme.TITLE_FONT);
+        titleLabel.setForeground(AppTheme.PRIMARY_DARK);
+
+        JLabel subtitleLabel = new JLabel(
+                "Visualização consolidada das atividades do professor no período selecionado.");
+        subtitleLabel.setFont(AppTheme.SUBTITLE_FONT);
+        subtitleLabel.setForeground(AppTheme.MUTED_TEXT);
+
+        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(subtitleLabel, BorderLayout.SOUTH);
+
+        return headerPanel;
+    }
+
+    /**
+     * Cria o painel que exibe o texto do relatório.
+     *
+     * @return painel do documento
+     */
+    private JPanel criarPainelDocumento() {
+        JPanel documentCard = UIUtils.createCardPanel();
+        documentCard.setLayout(new BorderLayout(10, 10));
+
         JTextArea relatorioTextArea = new JTextArea();
         relatorioTextArea.setEditable(false);
-        relatorioTextArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        relatorioTextArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        relatorioTextArea.setForeground(AppTheme.TEXT);
+        relatorioTextArea.setBackground(AppTheme.CARD_BACKGROUND);
+        relatorioTextArea.setLineWrap(true);
+        relatorioTextArea.setWrapStyleWord(true);
+        relatorioTextArea.setMargin(new Insets(12, 12, 12, 12));
         relatorioTextArea.setText(montarTextoRelatorio());
         relatorioTextArea.setCaretPosition(0);
 
         JScrollPane scrollPane = new JScrollPane(relatorioTextArea);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        scrollPane.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
+        documentCard.add(scrollPane, BorderLayout.CENTER);
+
+        return documentCard;
+    }
+
+    /**
+     * Cria o painel inferior da tela.
+     *
+     * @return painel inferior
+     */
+    private JPanel criarPainelInferior() {
         JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(AppTheme.BACKGROUND);
 
         JButton closeButton = new JButton("Fechar");
+        UIUtils.styleSecondaryButton(closeButton);
+
         closeButton.addActionListener(event -> dispose());
 
         bottomPanel.add(closeButton);
 
-        add(scrollPane, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
+        return bottomPanel;
     }
 
     /**
@@ -178,8 +248,8 @@ public class RelatorioFrame extends JFrame {
      * Adiciona orientações de um tipo específico ao relatório.
      *
      * @param builder construtor do texto
-     * @param titulo titulo da subseção
-     * @param tipo tipo de orientação
+     * @param titulo  titulo da subseção
+     * @param tipo    tipo de orientação
      */
     private void adicionarOrientacoesPorTipo(StringBuilder builder, String titulo, String tipo) {
         builder.append(titulo).append("\n");

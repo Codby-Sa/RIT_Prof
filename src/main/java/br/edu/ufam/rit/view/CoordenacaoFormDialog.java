@@ -3,6 +3,7 @@ package br.edu.ufam.rit.view;
 import br.edu.ufam.rit.dao.AtividadeCoordenacaoDAO;
 import br.edu.ufam.rit.model.AtividadeCoordenacao;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -15,7 +16,8 @@ import java.awt.GridLayout;
 import java.sql.SQLException;
 
 /**
- * Janela de formulário usada para cadastrar ou editar atividades de coordenação.
+ * Janela de formulário usada para cadastrar ou editar atividades de
+ * coordenação.
  */
 public class CoordenacaoFormDialog extends JDialog {
 
@@ -31,8 +33,8 @@ public class CoordenacaoFormDialog extends JDialog {
     /**
      * Cria o formulário de atividade de coordenação.
      *
-     * @param parent janela principal
-     * @param ritId id do RIT relacionado
+     * @param parent    janela principal
+     * @param ritId     id do RIT relacionado
      * @param atividade atividade para edição, ou null para cadastro
      */
     public CoordenacaoFormDialog(JFrame parent, int ritId, AtividadeCoordenacao atividade) {
@@ -61,6 +63,7 @@ public class CoordenacaoFormDialog extends JDialog {
         setSize(500, 260);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
@@ -68,10 +71,15 @@ public class CoordenacaoFormDialog extends JDialog {
      */
     private void criarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        formPanel.setBackground(AppTheme.CARD_BACKGROUND);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         descricaoField = new JTextField();
         cargoField = new JTextField();
         cargaHorariaField = new JTextField();
+        UIUtils.styleTextField(descricaoField);
+        UIUtils.styleTextField(cargoField);
+        UIUtils.styleTextField(cargaHorariaField);
 
         formPanel.add(new JLabel("Descrição:"));
         formPanel.add(descricaoField);
@@ -83,9 +91,12 @@ public class CoordenacaoFormDialog extends JDialog {
         formPanel.add(cargaHorariaField);
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
 
         JButton saveButton = new JButton("Salvar");
         JButton cancelButton = new JButton("Cancelar");
+        UIUtils.stylePrimaryButton(saveButton);
+        UIUtils.styleSecondaryButton(cancelButton);
 
         saveButton.addActionListener(event -> salvarAtividade());
         cancelButton.addActionListener(event -> dispose());
@@ -118,11 +129,10 @@ public class CoordenacaoFormDialog extends JDialog {
 
         if (descricao.isEmpty()) {
             JOptionPane.showMessageDialog(
-                this,
-                "A descrição da atividade é obrigatória.",
-                "Validação",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    this,
+                    "A descrição da atividade é obrigatória.",
+                    "Validação",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -133,11 +143,10 @@ public class CoordenacaoFormDialog extends JDialog {
                 cargaHoraria = Integer.parseInt(cargaHorariaTexto);
             } catch (NumberFormatException exception) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "A carga horária deve ser um número inteiro.",
-                    "Validação",
-                    JOptionPane.WARNING_MESSAGE
-                );
+                        this,
+                        "A carga horária deve ser um número inteiro.",
+                        "Validação",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
         }
@@ -145,11 +154,10 @@ public class CoordenacaoFormDialog extends JDialog {
         try {
             if (atividade == null) {
                 AtividadeCoordenacao novaAtividade = new AtividadeCoordenacao(
-                    ritId,
-                    descricao,
-                    cargo,
-                    cargaHoraria
-                );
+                        ritId,
+                        descricao,
+                        cargo,
+                        cargaHoraria);
 
                 atividadeDAO.inserir(novaAtividade);
             } else {
@@ -165,11 +173,10 @@ public class CoordenacaoFormDialog extends JDialog {
 
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(
-                this,
-                "Erro ao salvar atividade de coordenação.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Erro ao salvar atividade de coordenação.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
 
             exception.printStackTrace();
         }

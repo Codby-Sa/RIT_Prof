@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
+import javax.swing.JTextField;
 
 /**
  * Classe utilitária para aplicar estilos reutilizáveis em componentes Swing.
@@ -35,6 +36,21 @@ public final class UIUtils {
         panel.setBorder(BorderFactory.createCompoundBorder(outer, inner));
 
         return panel;
+    }
+
+    /**
+     * Aplica estilo padrão em campos de texto.
+     *
+     * @param field campo de texto
+     */
+    public static void styleTextField(JTextField field) {
+        field.setFont(AppTheme.BODY_FONT);
+        field.setForeground(AppTheme.TEXT);
+        field.setBackground(Color.WHITE);
+        field.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(AppTheme.BORDER),
+                        BorderFactory.createEmptyBorder(6, 8, 6, 8)));
     }
 
     /**

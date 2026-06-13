@@ -14,6 +14,7 @@ import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
+import javax.swing.BorderFactory;
 
 /**
  * Janela de formulário usada para cadastrar ou editar orientações.
@@ -63,6 +64,7 @@ public class OrientacaoFormDialog extends JDialog {
         setSize(500, 300);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
@@ -70,8 +72,11 @@ public class OrientacaoFormDialog extends JDialog {
      */
     private void criarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        formPanel.setBackground(AppTheme.CARD_BACKGROUND);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         nomeAlunoField = new JTextField();
+        UIUtils.styleTextField(nomeAlunoField);
 
         tipoComboBox = new JComboBox<>();
         tipoComboBox.addItem("Projeto final/TCC");
@@ -81,6 +86,8 @@ public class OrientacaoFormDialog extends JDialog {
 
         tituloTrabalhoField = new JTextField();
         cursoField = new JTextField();
+        UIUtils.styleTextField(tituloTrabalhoField);
+        UIUtils.styleTextField(cursoField);
 
         formPanel.add(new JLabel("Nome do aluno:"));
         formPanel.add(nomeAlunoField);
@@ -95,9 +102,11 @@ public class OrientacaoFormDialog extends JDialog {
         formPanel.add(cursoField);
 
         JPanel buttonPanel = new JPanel();
-
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
         JButton saveButton = new JButton("Salvar");
         JButton cancelButton = new JButton("Cancelar");
+        UIUtils.stylePrimaryButton(saveButton);
+        UIUtils.styleSecondaryButton(cancelButton);
 
         saveButton.addActionListener(event -> salvarOrientacao());
         cancelButton.addActionListener(event -> dispose());
