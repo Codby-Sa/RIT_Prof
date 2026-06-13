@@ -9,8 +9,10 @@ import java.sql.SQLException;
 /**
  * Classe principal do sistema de gerenciamento de RIT.
  *
- * <p>Esta classe inicializa o banco de dados e abre a tela principal
- * da aplicação.</p>
+ * <p>
+ * Esta classe inicializa o banco de dados e abre a tela principal
+ * da aplicação.
+ * </p>
  */
 public class Main {
 
@@ -22,6 +24,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             DatabaseInitializer.initialize();
+            DatabaseInitializer.insertInitialData();
 
             SwingUtilities.invokeLater(() -> {
                 ProfessorListFrame frame = new ProfessorListFrame();
