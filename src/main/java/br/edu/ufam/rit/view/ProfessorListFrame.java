@@ -3,6 +3,8 @@ package br.edu.ufam.rit.view;
 import br.edu.ufam.rit.dao.ProfessorDAO;
 import br.edu.ufam.rit.model.Professor;
 
+import javax.swing.BorderFactory;
+import java.awt.Color;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -47,31 +49,86 @@ public class ProfessorListFrame extends JFrame {
     /**
      * Configura as propriedades principais da janela.
      */
+    /*
+     * private void configurarJanela() {
+     * setSize(800, 500);
+     * setLocationRelativeTo(null);
+     * setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+     * setLayout(new BorderLayout(10, 10));
+     * }
+     */
+    /**
+     * Configura as propriedades principais da janela.
+     */
     private void configurarJanela() {
-        setSize(800, 500);
+        setSize(900, 550);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(16, 16));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
      * Cria e organiza os componentes visuais da tela.
      */
-    private void criarComponentes() {
-        JLabel titleLabel = new JLabel("Professores cadastrados", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+    /**
+ * Cria e organiza os componentes visuais da tela.
+ */
+private void criarComponentes() {
+    JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
+    mainPanel.setBackground(AppTheme.BACKGROUND);
+    mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        add(titleLabel, BorderLayout.NORTH);
+    JPanel headerPanel = criarCabecalho();
 
-        criarTabela();
-        
-        criarPainelBotoes();
-    }
+    JPanel contentCard = UIUtils.createCardPanel();
+    contentCard.setLayout(new BorderLayout(10, 10));
+
+    JLabel tableTitleLabel = new JLabel("Professores cadastrados");
+    tableTitleLabel.setFont(AppTheme.SECTION_TITLE_FONT);
+    tableTitleLabel.setForeground(AppTheme.TEXT);
+
+    criarTabela();
+
+    contentCard.add(tableTitleLabel, BorderLayout.NORTH);
+    contentCard.add(new JScrollPane(professorTable), BorderLayout.CENTER);
+
+    mainPanel.add(headerPanel, BorderLayout.NORTH);
+    mainPanel.add(contentCard, BorderLayout.CENTER);
+    mainPanel.add(criarPainelBotoes(), BorderLayout.SOUTH);
+
+    add(mainPanel, BorderLayout.CENTER);
+}
+/**
+ * Cria o cabeçalho da tela inicial.
+ *
+ * @return painel do cabeçalho
+ */
+private JPanel criarCabecalho() {
+    JPanel headerPanel = new JPanel(new BorderLayout(4, 4));
+    headerPanel.setBackground(AppTheme.BACKGROUND);
+
+    JLabel titleLabel = new JLabel("Sistema de Gerenciamento de RIT");
+    titleLabel.setFont(AppTheme.TITLE_FONT);
+    titleLabel.setForeground(AppTheme.PRIMARY_DARK);
+
+    JLabel subtitleLabel = new JLabel("Gerencie professores e seus relatórios individuais de trabalho.");
+    subtitleLabel.setFont(AppTheme.SUBTITLE_FONT);
+    subtitleLabel.setForeground(AppTheme.MUTED_TEXT);
+
+    headerPanel.add(titleLabel, BorderLayout.NORTH);
+    headerPanel.add(subtitleLabel, BorderLayout.SOUTH);
+
+    return headerPanel;
+}
 
     /**
      * Cria a tabela responsável por exibir os professores.
      */
-    private void criarTabela() {
+    /**
+ * Cria a tabela responsável por exibir os professores.
+ */
+private void criarTabela() {
     String[] columns = {"ID", "Nome", "Email", "Departamento"};
 
     tableModel = new DefaultTableModel(columns, 0) {
@@ -82,92 +139,93 @@ public class ProfessorListFrame extends JFrame {
     };
 
     professorTable = new JTable(tableModel);
-    professorTable.setRowHeight(28);
-    professorTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-    professorTable.setRowSelectionAllowed(true);
-    professorTable.setColumnSelectionAllowed(false);
-
-    professorTable.getColumnModel().getColumn(0).setMinWidth(0);
-    professorTable.getColumnModel().getColumn(0).setMaxWidth(0);
-    professorTable.getColumnModel().getColumn(0).setWidth(0);
-
-    JScrollPane scrollPane = new JScrollPane(professorTable);
-    add(scrollPane, BorderLayout.CENTER);
+    UIUtils.styleTable(professorTable);
+    UIUtils.hideColumn(professorTable, 0);
 }
 
     /**
      * Cria o painel inferior com os botões principais.
      */
-    private void criarPainelBotoes() {
+    /**
+ * Cria o painel inferior com os botões principais.
+ *
+ * @return painel de botões
+ */
+private JPanel criarPainelBotoes() {
     JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground(AppTheme.BACKGROUND);
 
-    JButton manageButton = new JButton("Gerenciar RIT");
-    JButton addButton = new JButton("Adicionar professor");
-    JButton editButton = new JButton("Editar");
-    JButton deleteButton = new JButton("Excluir");
+    JButton addButton = new JButton("Novo Professor");
+    JButton manageButton = new JButton("Abrir RIT");
+    JButton editButton = new JButton("Editar Professor");
+    JButton deleteButton = new JButton("Excluir Professor");
 
-    manageButton.addActionListener(event -> gerenciarRIT());
+    UIUtils.stylePrimaryButton(addButton);
+    UIUtils.stylePrimaryButton(manageButton);
+    UIUtils.styleSecondaryButton(editButton);
+    UIUtils.styleDangerButton(deleteButton);
+
     addButton.addActionListener(event -> adicionarProfessor());
+    manageButton.addActionListener(event -> gerenciarRIT());
     editButton.addActionListener(event -> editarProfessor());
     deleteButton.addActionListener(event -> excluirProfessor());
 
-    buttonPanel.add(manageButton);
     buttonPanel.add(addButton);
+    buttonPanel.add(manageButton);
     buttonPanel.add(editButton);
     buttonPanel.add(deleteButton);
 
-    add(buttonPanel, BorderLayout.SOUTH);
+    return buttonPanel;
 }
 
     /**
- * Abre o gerenciamento de RIT do professor selecionado.
- *
- * <p>Por enquanto, esta ação apenas confirma o professor selecionado.
- * Na próxima etapa, abrirá a tela de RIT.</p>
- */
-/**
- * Abre o gerenciamento de RIT do professor selecionado.
- */
-private void gerenciarRIT() {
-    int selectedRow = professorTable.getSelectedRow();
+     * Abre o gerenciamento de RIT do professor selecionado.
+     *
+     * <p>
+     * Por enquanto, esta ação apenas confirma o professor selecionado.
+     * Na próxima etapa, abrirá a tela de RIT.
+     * </p>
+     */
+    /**
+     * Abre o gerenciamento de RIT do professor selecionado.
+     */
+    private void gerenciarRIT() {
+        int selectedRow = professorTable.getSelectedRow();
 
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Selecione um professor para gerenciar o RIT."
-        );
-        return;
-    }
-
-    int professorId = (int) tableModel.getValueAt(selectedRow, 0);
-
-    try {
-        Professor professor = professorDAO.buscarPorId(professorId);
-
-        if (professor == null) {
+        if (selectedRow == -1) {
             JOptionPane.showMessageDialog(
-                this,
-                "Professor não encontrado.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Selecione um professor para gerenciar o RIT.");
             return;
         }
 
-        RitFrame ritFrame = new RitFrame(professor);
-        ritFrame.setVisible(true);
+        int professorId = (int) tableModel.getValueAt(selectedRow, 0);
 
-    } catch (SQLException exception) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Erro ao abrir gerenciamento de RIT.",
-            "Erro",
-            JOptionPane.ERROR_MESSAGE
-        );
+        try {
+            Professor professor = professorDAO.buscarPorId(professorId);
 
-        exception.printStackTrace();
+            if (professor == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Professor não encontrado.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            RitFrame ritFrame = new RitFrame(professor);
+            ritFrame.setVisible(true);
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao abrir gerenciamento de RIT.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
     }
-}
 
     /**
      * Carrega os professores salvos no banco e atualiza a tabela.
@@ -207,21 +265,20 @@ private void gerenciarRIT() {
      * </p>
      */
     /**
- * Abre o formulário para cadastrar um novo professor.
- */
-private void adicionarProfessor() {
-    ProfessorFormDialog dialog = new ProfessorFormDialog(this, null);
-    dialog.setVisible(true);
+     * Abre o formulário para cadastrar um novo professor.
+     */
+    private void adicionarProfessor() {
+        ProfessorFormDialog dialog = new ProfessorFormDialog(this, null);
+        dialog.setVisible(true);
 
-    if (dialog.isSaved()) {
-        carregarProfessores();
+        if (dialog.isSaved()) {
+            carregarProfessores();
 
-        JOptionPane.showMessageDialog(
-            this,
-            "Professor cadastrado com sucesso."
-        );
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Professor cadastrado com sucesso.");
+        }
     }
-}
 
     /**
      * Ação temporária para o botão de editar professor.
@@ -232,57 +289,53 @@ private void adicionarProfessor() {
      * </p>
      */
     /**
- * Abre o formulário para editar o professor selecionado.
- */
-private void editarProfessor() {
-    int selectedRow = professorTable.getSelectedRow();
+     * Abre o formulário para editar o professor selecionado.
+     */
+    private void editarProfessor() {
+        int selectedRow = professorTable.getSelectedRow();
 
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Selecione um professor para editar."
-        );
-        return;
-    }
-
-    int professorId = (int) tableModel.getValueAt(selectedRow, 0);
-
-    try {
-        Professor professor = professorDAO.buscarPorId(professorId);
-
-        if (professor == null) {
+        if (selectedRow == -1) {
             JOptionPane.showMessageDialog(
-                this,
-                "Professor não encontrado.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Selecione um professor para editar.");
             return;
         }
 
-        ProfessorFormDialog dialog = new ProfessorFormDialog(this, professor);
-        dialog.setVisible(true);
+        int professorId = (int) tableModel.getValueAt(selectedRow, 0);
 
-        if (dialog.isSaved()) {
-            carregarProfessores();
+        try {
+            Professor professor = professorDAO.buscarPorId(professorId);
 
+            if (professor == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Professor não encontrado.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            ProfessorFormDialog dialog = new ProfessorFormDialog(this, professor);
+            dialog.setVisible(true);
+
+            if (dialog.isSaved()) {
+                carregarProfessores();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Professor atualizado com sucesso.");
+            }
+
+        } catch (SQLException exception) {
             JOptionPane.showMessageDialog(
-                this,
-                "Professor atualizado com sucesso."
-            );
+                    this,
+                    "Erro ao buscar professor.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
         }
-
-    } catch (SQLException exception) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Erro ao buscar professor.",
-            "Erro",
-            JOptionPane.ERROR_MESSAGE
-        );
-
-        exception.printStackTrace();
     }
-}
 
     /**
      * Remove o professor selecionado da tabela e do banco de dados.
