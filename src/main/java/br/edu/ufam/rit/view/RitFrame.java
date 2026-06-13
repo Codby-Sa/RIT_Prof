@@ -9,6 +9,8 @@ import br.edu.ufam.rit.dao.OrientacaoDAO;
 import br.edu.ufam.rit.model.Orientacao;
 import br.edu.ufam.rit.dao.ArtigoDAO;
 import br.edu.ufam.rit.model.Artigo;
+import br.edu.ufam.rit.dao.AtividadeCoordenacaoDAO;
+import br.edu.ufam.rit.model.AtividadeCoordenacao;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -50,6 +52,9 @@ public class RitFrame extends JFrame {
     private ArtigoDAO artigoDAO;
     private JTable artigoTable;
     private DefaultTableModel artigoTableModel;
+    private AtividadeCoordenacaoDAO atividadeCoordenacaoDAO;
+    private JTable coordenacaoTable;
+    private DefaultTableModel coordenacaoTableModel;
 
     private JTextField semestreField;
     private JTextField anoField;
@@ -70,6 +75,7 @@ public class RitFrame extends JFrame {
         this.disciplinaDAO = new DisciplinaDAO();
         this.orientacaoDAO = new OrientacaoDAO();
         this.artigoDAO = new ArtigoDAO();
+        this.atividadeCoordenacaoDAO = new AtividadeCoordenacaoDAO();
 
         configurarJanela();
         criarComponentes();
@@ -153,8 +159,7 @@ public class RitFrame extends JFrame {
         tabbedPane.addTab("Disciplinas", criarPainelDisciplinas());
         tabbedPane.addTab("Orientações", criarPainelOrientacoes());
         tabbedPane.addTab("Artigos", criarPainelArtigos());
-        tabbedPane.addTab("Coordenação", criarPainelTemporario("Aqui ficará o cadastro de atividades de coordenação."));
-
+        tabbedPane.addTab("Coordenação", criarPainelCoordenacoes());
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -288,6 +293,7 @@ public class RitFrame extends JFrame {
         carregarDisciplinas();
         carregarOrientacoes();
         carregarArtigos();
+        carregarCoordenacoes();
 
         JOptionPane.showMessageDialog(
                 this,
@@ -547,6 +553,7 @@ public class RitFrame extends JFrame {
                 carregarDisciplinas();
                 carregarOrientacoes();
                 carregarArtigos();
+                carregarCoordenacoes();
             }
 
         } catch (SQLException exception) {
@@ -978,6 +985,218 @@ public class RitFrame extends JFrame {
                 JOptionPane.showMessageDialog(
                         this,
                         "Erro ao excluir artigo.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Cria o painel da aba de atividades de coordenação.
+     *
+     * @return painel de atividades de coordenação
+     */
+    private JPanel criarPainelCoordenacoes() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String[] columns = { "ID", "Descrição", "Cargo/Função", "Carga horária" };
+
+        coordenacaoTableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        coordenacaoTable = new JTable(coordenacaoTableModel);
+        coordenacaoTable.setRowHeight(26);
+        coordenacaoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        coordenacaoTable.setRowSelectionAllowed(true);
+        coordenacaoTable.setColumnSelectionAllowed(false);
+
+        coordenacaoTable.getColumnModel().getColumn(0).setMinWidth(0);
+        coordenacaoTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        coordenacaoTable.getColumnModel().getColumn(0).setWidth(0);
+
+        JScrollPane scrollPane = new JScrollPane(coordenacaoTable);
+
+        JPanel buttonPanel = new JPanel();
+
+        JButton addButton = new JButton("Adicionar");
+        JButton editButton = new JButton("Editar");
+        JButton deleteButton = new JButton("Excluir");
+
+        addButton.addActionListener(event -> adicionarCoordenacao());
+        editButton.addActionListener(event -> editarCoordenacao());
+        deleteButton.addActionListener(event -> excluirCoordenacao());
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    /**
+     * Carrega as atividades de coordenação do RIT atual na tabela.
+     */
+    private void carregarCoordenacoes() {
+        if (rit == null) {
+            coordenacaoTableModel.setRowCount(0);
+            return;
+        }
+
+        try {
+            coordenacaoTableModel.setRowCount(0);
+
+            List<AtividadeCoordenacao> atividades = atividadeCoordenacaoDAO.listarPorRit(rit.getId());
+
+            for (AtividadeCoordenacao atividade : atividades) {
+                Object[] row = {
+                        atividade.getId(),
+                        atividade.getDescricao(),
+                        atividade.getCargo(),
+                        atividade.getCargaHoraria()
+                };
+
+                coordenacaoTableModel.addRow(row);
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao carregar atividades de coordenação.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Abre o formulário para adicionar uma atividade de coordenação ao RIT atual.
+     */
+    private void adicionarCoordenacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        CoordenacaoFormDialog dialog = new CoordenacaoFormDialog(this, rit.getId(), null);
+        dialog.setVisible(true);
+
+        if (dialog.isSaved()) {
+            carregarCoordenacoes();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Atividade de coordenação cadastrada com sucesso.");
+        }
+    }
+
+    /**
+     * Abre o formulário para editar a atividade de coordenação selecionada.
+     */
+    private void editarCoordenacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = coordenacaoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione uma atividade de coordenação para editar.");
+            return;
+        }
+
+        int atividadeId = (int) coordenacaoTableModel.getValueAt(selectedRow, 0);
+
+        try {
+            AtividadeCoordenacao atividade = atividadeCoordenacaoDAO.buscarPorId(atividadeId);
+
+            if (atividade == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Atividade de coordenação não encontrada.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            CoordenacaoFormDialog dialog = new CoordenacaoFormDialog(this, rit.getId(), atividade);
+            dialog.setVisible(true);
+
+            if (dialog.isSaved()) {
+                carregarCoordenacoes();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Atividade de coordenação atualizada com sucesso.");
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao buscar atividade de coordenação.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Remove a atividade de coordenação selecionada.
+     */
+    private void excluirCoordenacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = coordenacaoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione uma atividade de coordenação para excluir.");
+            return;
+        }
+
+        int atividadeId = (int) coordenacaoTableModel.getValueAt(selectedRow, 0);
+        String descricao = (String) coordenacaoTableModel.getValueAt(selectedRow, 1);
+
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja realmente excluir a atividade " + descricao + "?",
+                "Confirmar exclusão",
+                JOptionPane.YES_NO_OPTION);
+
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                atividadeCoordenacaoDAO.remover(atividadeId);
+                carregarCoordenacoes();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Atividade de coordenação excluída com sucesso.");
+
+            } catch (SQLException exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Erro ao excluir atividade de coordenação.",
                         "Erro",
                         JOptionPane.ERROR_MESSAGE);
 
