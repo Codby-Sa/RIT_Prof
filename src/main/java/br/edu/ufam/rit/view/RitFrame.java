@@ -5,6 +5,8 @@ import br.edu.ufam.rit.dao.RITDAO;
 import br.edu.ufam.rit.model.RIT;
 import br.edu.ufam.rit.dao.DisciplinaDAO;
 import br.edu.ufam.rit.model.Disciplina;
+import br.edu.ufam.rit.dao.OrientacaoDAO;
+import br.edu.ufam.rit.model.Orientacao;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -46,6 +48,9 @@ public class RitFrame extends JFrame {
 
     private JTextField semestreField;
     private JTextField anoField;
+    private OrientacaoDAO orientacaoDAO;
+    private JTable orientacaoTable;
+    private DefaultTableModel orientacaoTableModel;
 
     /**
      * Cria a tela de gerenciamento de RIT.
@@ -58,6 +63,7 @@ public class RitFrame extends JFrame {
         this.professor = professor;
         this.ritDAO = new RITDAO();
         this.disciplinaDAO = new DisciplinaDAO();
+        this.orientacaoDAO = new OrientacaoDAO();
 
         configurarJanela();
         criarComponentes();
@@ -139,7 +145,7 @@ public class RitFrame extends JFrame {
         JTabbedPane tabbedPane = new JTabbedPane();
 
         tabbedPane.addTab("Disciplinas", criarPainelDisciplinas());
-        tabbedPane.addTab("Orientações", criarPainelTemporario("Aqui ficará o cadastro de orientações."));
+        tabbedPane.addTab("Orientações", criarPainelOrientacoes());
         tabbedPane.addTab("Artigos", criarPainelTemporario("Aqui ficará o cadastro de artigos publicados."));
         tabbedPane.addTab("Coordenação", criarPainelTemporario("Aqui ficará o cadastro de atividades de coordenação."));
 
@@ -274,6 +280,7 @@ public class RitFrame extends JFrame {
             return;
         }
         carregarDisciplinas();
+        carregarOrientacoes();
 
         JOptionPane.showMessageDialog(
                 this,
@@ -531,6 +538,7 @@ public class RitFrame extends JFrame {
             if (ritEncontrado != null) {
                 this.rit = ritEncontrado;
                 carregarDisciplinas();
+                carregarOrientacoes();
             }
 
         } catch (SQLException exception) {
@@ -541,6 +549,219 @@ public class RitFrame extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
 
             exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Cria o painel da aba de orientações.
+     *
+     * @return painel de orientações
+     */
+    private JPanel criarPainelOrientacoes() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String[] columns = { "ID", "Aluno", "Tipo", "Título do trabalho", "Curso" };
+
+        orientacaoTableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        orientacaoTable = new JTable(orientacaoTableModel);
+        orientacaoTable.setRowHeight(26);
+        orientacaoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        orientacaoTable.setRowSelectionAllowed(true);
+        orientacaoTable.setColumnSelectionAllowed(false);
+
+        orientacaoTable.getColumnModel().getColumn(0).setMinWidth(0);
+        orientacaoTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        orientacaoTable.getColumnModel().getColumn(0).setWidth(0);
+
+        JScrollPane scrollPane = new JScrollPane(orientacaoTable);
+
+        JPanel buttonPanel = new JPanel();
+
+        JButton addButton = new JButton("Adicionar");
+        JButton editButton = new JButton("Editar");
+        JButton deleteButton = new JButton("Excluir");
+
+        addButton.addActionListener(event -> adicionarOrientacao());
+        editButton.addActionListener(event -> editarOrientacao());
+        deleteButton.addActionListener(event -> excluirOrientacao());
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    /**
+     * Carrega as orientações do RIT atual na tabela.
+     */
+    private void carregarOrientacoes() {
+        if (rit == null) {
+            orientacaoTableModel.setRowCount(0);
+            return;
+        }
+
+        try {
+            orientacaoTableModel.setRowCount(0);
+
+            List<Orientacao> orientacoes = orientacaoDAO.listarPorRit(rit.getId());
+
+            for (Orientacao orientacao : orientacoes) {
+                Object[] row = {
+                        orientacao.getId(),
+                        orientacao.getNomeAluno(),
+                        orientacao.getTipo(),
+                        orientacao.getTituloTrabalho(),
+                        orientacao.getCurso()
+                };
+
+                orientacaoTableModel.addRow(row);
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao carregar orientações.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Abre o formulário para adicionar uma orientação ao RIT atual.
+     */
+    private void adicionarOrientacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        OrientacaoFormDialog dialog = new OrientacaoFormDialog(this, rit.getId(), null);
+        dialog.setVisible(true);
+
+        if (dialog.isSaved()) {
+            carregarOrientacoes();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Orientação cadastrada com sucesso.");
+        }
+    }
+
+    /**
+     * Abre o formulário para editar a orientação selecionada.
+     */
+    private void editarOrientacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = orientacaoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione uma orientação para editar.");
+            return;
+        }
+
+        int orientacaoId = (int) orientacaoTableModel.getValueAt(selectedRow, 0);
+
+        try {
+            Orientacao orientacao = orientacaoDAO.buscarPorId(orientacaoId);
+
+            if (orientacao == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Orientação não encontrada.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            OrientacaoFormDialog dialog = new OrientacaoFormDialog(this, rit.getId(), orientacao);
+            dialog.setVisible(true);
+
+            if (dialog.isSaved()) {
+                carregarOrientacoes();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Orientação atualizada com sucesso.");
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao buscar orientação.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Remove a orientação selecionada.
+     */
+    private void excluirOrientacao() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = orientacaoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione uma orientação para excluir.");
+            return;
+        }
+
+        int orientacaoId = (int) orientacaoTableModel.getValueAt(selectedRow, 0);
+        String nomeAluno = (String) orientacaoTableModel.getValueAt(selectedRow, 1);
+
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja realmente excluir a orientação do aluno " + nomeAluno + "?",
+                "Confirmar exclusão",
+                JOptionPane.YES_NO_OPTION);
+
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                orientacaoDAO.remover(orientacaoId);
+                carregarOrientacoes();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Orientação excluída com sucesso.");
+
+            } catch (SQLException exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Erro ao excluir orientação.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+
+                exception.printStackTrace();
+            }
         }
     }
 }
