@@ -4,7 +4,6 @@ import br.edu.ufam.rit.dao.ProfessorDAO;
 import br.edu.ufam.rit.model.Professor;
 
 import javax.swing.BorderFactory;
-import java.awt.Color;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -12,10 +11,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.sql.SQLException;
 import java.util.List;
 

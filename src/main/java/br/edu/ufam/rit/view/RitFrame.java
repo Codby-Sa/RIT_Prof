@@ -15,7 +15,6 @@ import br.edu.ufam.rit.model.AtividadeCoordenacao;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.ListSelectionModel;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -27,10 +26,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.BorderFactory;
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
 
 /**
@@ -87,32 +84,52 @@ public class RitFrame extends JFrame {
      * Configura as propriedades principais da janela.
      */
     private void configurarJanela() {
-        setSize(900, 600);
+        setSize(1000, 750);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(16, 16));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
     }
 
     /**
      * Cria e organiza os componentes principais da tela.
      */
     private void criarComponentes() {
-        criarCabecalho();
-        criarAbas();
-        criarPainelInferior();
+        JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
+        mainPanel.setBackground(AppTheme.BACKGROUND);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        mainPanel.add(criarCabecalho(), BorderLayout.NORTH);
+        mainPanel.add(criarAbas(), BorderLayout.CENTER);
+        mainPanel.add(criarPainelInferior(), BorderLayout.SOUTH);
+
+        add(mainPanel, BorderLayout.CENTER);
     }
 
     /**
      * Cria o cabeçalho com os dados do professor e os campos do semestre.
+     *
+     * @return painel de cabeçalho
      */
-    private void criarCabecalho() {
-        JPanel headerPanel = new JPanel(new BorderLayout(10, 10));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
+    private JPanel criarCabecalho() {
+        JPanel headerCard = UIUtils.createCardPanel();
+        headerCard.setLayout(new BorderLayout(10, 14));
 
-        JLabel titleLabel = new JLabel("Relatório Individual de Trabalho", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        JLabel titleLabel = new JLabel("Relatório Individual de Trabalho");
+        titleLabel.setFont(AppTheme.TITLE_FONT);
+        titleLabel.setForeground(AppTheme.PRIMARY_DARK);
+
+        JLabel subtitleLabel = new JLabel("Gerenciamento das atividades do professor no período selecionado.");
+        subtitleLabel.setFont(AppTheme.SUBTITLE_FONT);
+        subtitleLabel.setForeground(AppTheme.MUTED_TEXT);
+
+        JPanel titlePanel = new JPanel(new BorderLayout(4, 4));
+        titlePanel.setBackground(AppTheme.CARD_BACKGROUND);
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.add(subtitleLabel, BorderLayout.SOUTH);
 
         JPanel infoPanel = new JPanel(new GridLayout(5, 2, 8, 8));
+        infoPanel.setBackground(AppTheme.CARD_BACKGROUND);
 
         JLabel nomeLabel = new JLabel("Professor:");
         JLabel nomeValueLabel = new JLabel(professor.getNome());
@@ -129,6 +146,19 @@ public class RitFrame extends JFrame {
         JLabel anoLabel = new JLabel("Ano:");
         anoField = new JTextField("2026");
 
+        estilizarLabel(nomeLabel);
+        estilizarLabel(emailLabel);
+        estilizarLabel(departamentoLabel);
+        estilizarLabel(semestreLabel);
+        estilizarLabel(anoLabel);
+
+        estilizarValor(nomeValueLabel);
+        estilizarValor(emailValueLabel);
+        estilizarValor(departamentoValueLabel);
+
+        estilizarCampo(semestreField);
+        estilizarCampo(anoField);
+
         infoPanel.add(nomeLabel);
         infoPanel.add(nomeValueLabel);
 
@@ -144,40 +174,74 @@ public class RitFrame extends JFrame {
         infoPanel.add(anoLabel);
         infoPanel.add(anoField);
 
-        headerPanel.add(titleLabel, BorderLayout.NORTH);
-        headerPanel.add(infoPanel, BorderLayout.CENTER);
+        headerCard.add(titlePanel, BorderLayout.NORTH);
+        headerCard.add(infoPanel, BorderLayout.CENTER);
 
-        add(headerPanel, BorderLayout.NORTH);
+        return headerCard;
+    }
+
+    /**
+     * Aplica estilo nos rótulos dos campos.
+     *
+     * @param label rótulo
+     */
+    private void estilizarLabel(JLabel label) {
+        label.setFont(AppTheme.BUTTON_FONT);
+        label.setForeground(AppTheme.TEXT);
+    }
+
+    /**
+     * Aplica estilo nos valores exibidos no cabeçalho.
+     *
+     * @param label valor
+     */
+    private void estilizarValor(JLabel label) {
+        label.setFont(AppTheme.BODY_FONT);
+        label.setForeground(AppTheme.MUTED_TEXT);
+    }
+
+    /**
+     * Aplica estilo nos campos de texto.
+     *
+     * @param field campo de texto
+     */
+    private void estilizarCampo(JTextField field) {
+        field.setFont(AppTheme.BODY_FONT);
+        field.setForeground(AppTheme.TEXT);
+        field.setBackground(AppTheme.CARD_BACKGROUND);
+        field.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(AppTheme.BORDER),
+                        BorderFactory.createEmptyBorder(6, 8, 6, 8)));
     }
 
     /**
      * Cria as abas de atividades do RIT.
+     *
+     * @return painel com abas
      */
-    private void criarAbas() {
+    private JPanel criarAbas() {
+        JPanel tabsCard = UIUtils.createCardPanel();
+        tabsCard.setLayout(new BorderLayout(10, 10));
+
+        JLabel sectionTitle = new JLabel("Atividades do RIT");
+        sectionTitle.setFont(AppTheme.SECTION_TITLE_FONT);
+        sectionTitle.setForeground(AppTheme.TEXT);
+
         JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(AppTheme.BUTTON_FONT);
+        tabbedPane.setBackground(AppTheme.CARD_BACKGROUND);
+        tabbedPane.setForeground(AppTheme.TEXT);
 
         tabbedPane.addTab("Disciplinas", criarPainelDisciplinas());
         tabbedPane.addTab("Orientações", criarPainelOrientacoes());
         tabbedPane.addTab("Artigos", criarPainelArtigos());
         tabbedPane.addTab("Coordenação", criarPainelCoordenacoes());
-        add(tabbedPane, BorderLayout.CENTER);
-    }
 
-    /**
-     * Cria um painel temporário para uma aba.
-     *
-     * @param mensagem mensagem exibida no painel
-     * @return painel criado
-     */
-    private JPanel criarPainelTemporario(String mensagem) {
-        JPanel panel = new JPanel(new BorderLayout());
+        tabsCard.add(sectionTitle, BorderLayout.NORTH);
+        tabsCard.add(tabbedPane, BorderLayout.CENTER);
 
-        JLabel label = new JLabel(mensagem, SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.PLAIN, 16));
-
-        panel.add(label, BorderLayout.CENTER);
-
-        return panel;
+        return tabsCard;
     }
 
     /**
@@ -258,12 +322,18 @@ public class RitFrame extends JFrame {
 
     /**
      * Cria o painel inferior com botões de ação da tela.
+     *
+     * @return painel inferior
      */
-    private void criarPainelInferior() {
+    private JPanel criarPainelInferior() {
         JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(AppTheme.BACKGROUND);
 
-        JButton reportButton = new JButton("Gerar Relatório");
-        JButton backButton = new JButton("Voltar");
+        JButton reportButton = new JButton("Visualizar Relatório");
+        JButton backButton = new JButton("Fechar");
+
+        UIUtils.stylePrimaryButton(reportButton);
+        UIUtils.styleSecondaryButton(backButton);
 
         reportButton.addActionListener(event -> gerarRelatorio());
         backButton.addActionListener(event -> dispose());
@@ -271,7 +341,7 @@ public class RitFrame extends JFrame {
         bottomPanel.add(reportButton);
         bottomPanel.add(backButton);
 
-        add(bottomPanel, BorderLayout.SOUTH);
+        return bottomPanel;
     }
 
     /**
@@ -334,6 +404,7 @@ public class RitFrame extends JFrame {
     private JPanel criarPainelDisciplinas() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(AppTheme.CARD_BACKGROUND);
 
         String[] columns = { "ID", "Nome", "Código", "Carga horária", "Curso" };
 
@@ -345,22 +416,19 @@ public class RitFrame extends JFrame {
         };
 
         disciplinaTable = new JTable(disciplinaTableModel);
-        disciplinaTable.setRowHeight(26);
-        disciplinaTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        disciplinaTable.setRowSelectionAllowed(true);
-        disciplinaTable.setColumnSelectionAllowed(false);
-
-        disciplinaTable.getColumnModel().getColumn(0).setMinWidth(0);
-        disciplinaTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        disciplinaTable.getColumnModel().getColumn(0).setWidth(0);
-
+        UIUtils.styleTable(disciplinaTable);
+        UIUtils.hideColumn(disciplinaTable, 0);
         JScrollPane scrollPane = new JScrollPane(disciplinaTable);
 
         JPanel buttonPanel = new JPanel();
 
-        JButton addButton = new JButton("Adicionar");
-        JButton editButton = new JButton("Editar");
-        JButton deleteButton = new JButton("Excluir");
+        JButton addButton = new JButton("Adicionar Disciplina");
+        JButton editButton = new JButton("Editar Disciplina");
+        JButton deleteButton = new JButton("Excluir Disciplina");
+
+        UIUtils.stylePrimaryButton(addButton);
+        UIUtils.styleSecondaryButton(editButton);
+        UIUtils.styleDangerButton(deleteButton);
 
         addButton.addActionListener(event -> adicionarDisciplina());
         editButton.addActionListener(event -> editarDisciplina());
@@ -598,6 +666,7 @@ public class RitFrame extends JFrame {
     private JPanel criarPainelOrientacoes() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(AppTheme.CARD_BACKGROUND);
 
         String[] columns = { "ID", "Aluno", "Tipo", "Título do trabalho", "Curso" };
 
@@ -609,12 +678,9 @@ public class RitFrame extends JFrame {
         };
 
         orientacaoTable = new JTable(orientacaoTableModel);
-        orientacaoTable.setRowHeight(26);
-        orientacaoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        orientacaoTable.setRowSelectionAllowed(true);
-        orientacaoTable.setColumnSelectionAllowed(false);
+        UIUtils.styleTable(orientacaoTable);
+        UIUtils.hideColumn(orientacaoTable, 0);
 
-        orientacaoTable.getColumnModel().getColumn(0).setMinWidth(0);
         orientacaoTable.getColumnModel().getColumn(0).setMaxWidth(0);
         orientacaoTable.getColumnModel().getColumn(0).setWidth(0);
 
@@ -622,10 +688,13 @@ public class RitFrame extends JFrame {
 
         JPanel buttonPanel = new JPanel();
 
-        JButton addButton = new JButton("Adicionar");
-        JButton editButton = new JButton("Editar");
-        JButton deleteButton = new JButton("Excluir");
+        JButton addButton = new JButton("Adicionar Orientação");
+        JButton editButton = new JButton("Editar Orientação");
+        JButton deleteButton = new JButton("Excluir Orientação");
 
+        UIUtils.stylePrimaryButton(addButton);
+        UIUtils.styleSecondaryButton(editButton);
+        UIUtils.styleDangerButton(deleteButton);
         addButton.addActionListener(event -> adicionarOrientacao());
         editButton.addActionListener(event -> editarOrientacao());
         deleteButton.addActionListener(event -> excluirOrientacao());
@@ -811,6 +880,7 @@ public class RitFrame extends JFrame {
     private JPanel criarPainelArtigos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(AppTheme.CARD_BACKGROUND);
 
         String[] columns = { "ID", "Título", "Autores", "Evento/Revista", "Ano" };
 
@@ -822,23 +892,19 @@ public class RitFrame extends JFrame {
         };
 
         artigoTable = new JTable(artigoTableModel);
-        artigoTable.setRowHeight(26);
-        artigoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        artigoTable.setRowSelectionAllowed(true);
-        artigoTable.setColumnSelectionAllowed(false);
-
-        artigoTable.getColumnModel().getColumn(0).setMinWidth(0);
-        artigoTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        artigoTable.getColumnModel().getColumn(0).setWidth(0);
-
+        UIUtils.styleTable(artigoTable);
+        UIUtils.hideColumn(artigoTable, 0);
         JScrollPane scrollPane = new JScrollPane(artigoTable);
 
         JPanel buttonPanel = new JPanel();
 
-        JButton addButton = new JButton("Adicionar");
-        JButton editButton = new JButton("Editar");
-        JButton deleteButton = new JButton("Excluir");
+        JButton addButton = new JButton("Adicionar Artigo");
+        JButton editButton = new JButton("Editar Artigo");
+        JButton deleteButton = new JButton("Excluir Artigo");
 
+        UIUtils.stylePrimaryButton(addButton);
+        UIUtils.styleSecondaryButton(editButton);
+        UIUtils.styleDangerButton(deleteButton);
         addButton.addActionListener(event -> adicionarArtigo());
         editButton.addActionListener(event -> editarArtigo());
         deleteButton.addActionListener(event -> excluirArtigo());
@@ -1024,6 +1090,7 @@ public class RitFrame extends JFrame {
     private JPanel criarPainelCoordenacoes() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(AppTheme.CARD_BACKGROUND);
 
         String[] columns = { "ID", "Descrição", "Cargo/Função", "Carga horária" };
 
@@ -1035,23 +1102,19 @@ public class RitFrame extends JFrame {
         };
 
         coordenacaoTable = new JTable(coordenacaoTableModel);
-        coordenacaoTable.setRowHeight(26);
-        coordenacaoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        coordenacaoTable.setRowSelectionAllowed(true);
-        coordenacaoTable.setColumnSelectionAllowed(false);
-
-        coordenacaoTable.getColumnModel().getColumn(0).setMinWidth(0);
-        coordenacaoTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        coordenacaoTable.getColumnModel().getColumn(0).setWidth(0);
-
+        UIUtils.styleTable(coordenacaoTable);
+        UIUtils.hideColumn(coordenacaoTable, 0);
         JScrollPane scrollPane = new JScrollPane(coordenacaoTable);
 
         JPanel buttonPanel = new JPanel();
 
-        JButton addButton = new JButton("Adicionar");
-        JButton editButton = new JButton("Editar");
-        JButton deleteButton = new JButton("Excluir");
+        JButton addButton = new JButton("Adicionar Atividade");
+        JButton editButton = new JButton("Editar Atividade");
+        JButton deleteButton = new JButton("Excluir Atividade");
 
+        UIUtils.stylePrimaryButton(addButton);
+        UIUtils.styleSecondaryButton(editButton);
+        UIUtils.styleDangerButton(deleteButton);
         addButton.addActionListener(event -> adicionarCoordenacao());
         editButton.addActionListener(event -> editarCoordenacao());
         deleteButton.addActionListener(event -> excluirCoordenacao());
