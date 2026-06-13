@@ -7,6 +7,8 @@ import br.edu.ufam.rit.dao.DisciplinaDAO;
 import br.edu.ufam.rit.model.Disciplina;
 import br.edu.ufam.rit.dao.OrientacaoDAO;
 import br.edu.ufam.rit.model.Orientacao;
+import br.edu.ufam.rit.dao.ArtigoDAO;
+import br.edu.ufam.rit.model.Artigo;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -45,6 +47,9 @@ public class RitFrame extends JFrame {
     private DisciplinaDAO disciplinaDAO;
     private JTable disciplinaTable;
     private DefaultTableModel disciplinaTableModel;
+    private ArtigoDAO artigoDAO;
+    private JTable artigoTable;
+    private DefaultTableModel artigoTableModel;
 
     private JTextField semestreField;
     private JTextField anoField;
@@ -64,6 +69,7 @@ public class RitFrame extends JFrame {
         this.ritDAO = new RITDAO();
         this.disciplinaDAO = new DisciplinaDAO();
         this.orientacaoDAO = new OrientacaoDAO();
+        this.artigoDAO = new ArtigoDAO();
 
         configurarJanela();
         criarComponentes();
@@ -146,7 +152,7 @@ public class RitFrame extends JFrame {
 
         tabbedPane.addTab("Disciplinas", criarPainelDisciplinas());
         tabbedPane.addTab("Orientações", criarPainelOrientacoes());
-        tabbedPane.addTab("Artigos", criarPainelTemporario("Aqui ficará o cadastro de artigos publicados."));
+        tabbedPane.addTab("Artigos", criarPainelArtigos());
         tabbedPane.addTab("Coordenação", criarPainelTemporario("Aqui ficará o cadastro de atividades de coordenação."));
 
         add(tabbedPane, BorderLayout.CENTER);
@@ -281,6 +287,7 @@ public class RitFrame extends JFrame {
         }
         carregarDisciplinas();
         carregarOrientacoes();
+        carregarArtigos();
 
         JOptionPane.showMessageDialog(
                 this,
@@ -539,6 +546,7 @@ public class RitFrame extends JFrame {
                 this.rit = ritEncontrado;
                 carregarDisciplinas();
                 carregarOrientacoes();
+                carregarArtigos();
             }
 
         } catch (SQLException exception) {
@@ -757,6 +765,219 @@ public class RitFrame extends JFrame {
                 JOptionPane.showMessageDialog(
                         this,
                         "Erro ao excluir orientação.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Cria o painel da aba de artigos.
+     *
+     * @return painel de artigos
+     */
+    private JPanel criarPainelArtigos() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String[] columns = { "ID", "Título", "Autores", "Evento/Revista", "Ano" };
+
+        artigoTableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        artigoTable = new JTable(artigoTableModel);
+        artigoTable.setRowHeight(26);
+        artigoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        artigoTable.setRowSelectionAllowed(true);
+        artigoTable.setColumnSelectionAllowed(false);
+
+        artigoTable.getColumnModel().getColumn(0).setMinWidth(0);
+        artigoTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        artigoTable.getColumnModel().getColumn(0).setWidth(0);
+
+        JScrollPane scrollPane = new JScrollPane(artigoTable);
+
+        JPanel buttonPanel = new JPanel();
+
+        JButton addButton = new JButton("Adicionar");
+        JButton editButton = new JButton("Editar");
+        JButton deleteButton = new JButton("Excluir");
+
+        addButton.addActionListener(event -> adicionarArtigo());
+        editButton.addActionListener(event -> editarArtigo());
+        deleteButton.addActionListener(event -> excluirArtigo());
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    /**
+     * Carrega os artigos do RIT atual na tabela.
+     */
+    private void carregarArtigos() {
+        if (rit == null) {
+            artigoTableModel.setRowCount(0);
+            return;
+        }
+
+        try {
+            artigoTableModel.setRowCount(0);
+
+            List<Artigo> artigos = artigoDAO.listarPorRit(rit.getId());
+
+            for (Artigo artigo : artigos) {
+                Object[] row = {
+                        artigo.getId(),
+                        artigo.getTitulo(),
+                        artigo.getAutores(),
+                        artigo.getNomeEventoOuRevista(),
+                        artigo.getAnoPublicacao()
+                };
+
+                artigoTableModel.addRow(row);
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao carregar artigos.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Abre o formulário para adicionar um artigo ao RIT atual.
+     */
+    private void adicionarArtigo() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        ArtigoFormDialog dialog = new ArtigoFormDialog(this, rit.getId(), null);
+        dialog.setVisible(true);
+
+        if (dialog.isSaved()) {
+            carregarArtigos();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Artigo cadastrado com sucesso.");
+        }
+    }
+
+    /**
+     * Abre o formulário para editar o artigo selecionado.
+     */
+    private void editarArtigo() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = artigoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione um artigo para editar.");
+            return;
+        }
+
+        int artigoId = (int) artigoTableModel.getValueAt(selectedRow, 0);
+
+        try {
+            Artigo artigo = artigoDAO.buscarPorId(artigoId);
+
+            if (artigo == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Artigo não encontrado.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            ArtigoFormDialog dialog = new ArtigoFormDialog(this, rit.getId(), artigo);
+            dialog.setVisible(true);
+
+            if (dialog.isSaved()) {
+                carregarArtigos();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Artigo atualizado com sucesso.");
+            }
+
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Erro ao buscar artigo.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Remove o artigo selecionado.
+     */
+    private void excluirArtigo() {
+        boolean ritDisponivel = obterOuCriarRIT();
+
+        if (!ritDisponivel) {
+            return;
+        }
+
+        int selectedRow = artigoTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecione um artigo para excluir.");
+            return;
+        }
+
+        int artigoId = (int) artigoTableModel.getValueAt(selectedRow, 0);
+        String tituloArtigo = (String) artigoTableModel.getValueAt(selectedRow, 1);
+
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja realmente excluir o artigo " + tituloArtigo + "?",
+                "Confirmar exclusão",
+                JOptionPane.YES_NO_OPTION);
+
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                artigoDAO.remover(artigoId);
+                carregarArtigos();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Artigo excluído com sucesso.");
+
+            } catch (SQLException exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Erro ao excluir artigo.",
                         "Erro",
                         JOptionPane.ERROR_MESSAGE);
 
